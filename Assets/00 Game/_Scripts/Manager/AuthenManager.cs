@@ -1,28 +1,28 @@
+using System.Collections;
 using System.Security.Cryptography;
 using System.Text;
 using TMPro;
-using UnityEditor.VersionControl;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class AuthenManager : MonoBehaviour
 {
-    [SerializeField] TextMeshProUGUI TopText;
-    [SerializeField] TextMeshProUGUI MessageText;
+    [SerializeField] private TextMeshProUGUI TopText;
+    [SerializeField] private TextMeshProUGUI MessageText;
 
     [Header("Login")]
-    [SerializeField] TextMeshProUGUI EmailLoginInput;
-    [SerializeField] TextMeshProUGUI PasswordLoginInput;
-    [SerializeField] GameObject LoginPage;
+    [SerializeField] private TextMeshProUGUI EmailLoginInput;
+    [SerializeField] private TextMeshProUGUI PasswordLoginInput;
+    [SerializeField] private GameObject LoginPage;
 
     [Header("SignUp")]
-    [SerializeField] TextMeshProUGUI UsernameSignUpInput;
-    [SerializeField] TextMeshProUGUI EmailSignUpInput;
-    [SerializeField] TextMeshProUGUI PasswordSignUpInput;
-    [SerializeField] GameObject SignUpPage;
+    [SerializeField] private TextMeshProUGUI UsernameSignUpInput;
+    [SerializeField] private TextMeshProUGUI EmailSignUpInput;
+    [SerializeField] private TextMeshProUGUI PasswordSignUpInput;
+    [SerializeField] private GameObject SignUpPage;
 
-    void Start()
+    private void Start()
     {
-        // Validate all serialized fields
         if (!ValidateFields())
         {
             Debug.LogError("One or more required fields are not assigned in the Unity Inspector.");
@@ -75,18 +75,17 @@ public class AuthenManager : MonoBehaviour
 
     public void SignUp()
     {
-        string email = EmailSignUpInput.text;
-        string username = UsernameSignUpInput.text;
+        string email = EmailSignUpInput.text.Trim();
+        string username = UsernameSignUpInput.text.Trim();
         string password = PasswordSignUpInput.text;
 
-        // Ensure inputs are not null or empty
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
         {
+            MessageText.color = Color.yellow;
             MessageText.text = "All fields are required.";
             return;
         }
 
-        // Check if email already exists
         if (PlayerPrefs.HasKey(email))
         {
             MessageText.color = Color.yellow;
@@ -94,12 +93,9 @@ public class AuthenManager : MonoBehaviour
             return;
         }
 
-        // Hash the password
         string hashedPassword = HashPassword(password);
-
-        // Save credentials
-        PlayerPrefs.SetString(email, hashedPassword); // Store email-password pair
-        PlayerPrefs.SetString(email + "_username", username); // Store username
+        PlayerPrefs.SetString(email, hashedPassword);
+        PlayerPrefs.SetString(email + "_username", username);
         PlayerPrefs.Save();
 
         MessageText.color = Color.green;
@@ -109,10 +105,9 @@ public class AuthenManager : MonoBehaviour
 
     public void Login()
     {
-        string email = EmailLoginInput.text;
+        string email = EmailLoginInput.text.Trim();
         string password = PasswordLoginInput.text;
 
-        // Ensure inputs are not null or empty
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
         {
             MessageText.color = Color.yellow;
@@ -120,7 +115,6 @@ public class AuthenManager : MonoBehaviour
             return;
         }
 
-        // Check if email exists
         if (!PlayerPrefs.HasKey(email))
         {
             MessageText.color = Color.red;
@@ -128,7 +122,6 @@ public class AuthenManager : MonoBehaviour
             return;
         }
 
-        // Validate hashed password
         string storedHashedPassword = PlayerPrefs.GetString(email);
         string enteredHashedPassword = HashPassword(password);
 
@@ -136,7 +129,8 @@ public class AuthenManager : MonoBehaviour
         {
             string username = PlayerPrefs.GetString(email + "_username");
             MessageText.color = Color.green;
-            MessageText.text = $"Welcome back, {username}!";
+            MessageText.text = $"Welcome, {username}!";
+            StartCoroutine(LoadScene());
         }
         else
         {
@@ -145,13 +139,18 @@ public class AuthenManager : MonoBehaviour
         }
     }
 
-    #region HelperFunctions
+    private IEnumerator LoadScene()
+    {
+        yield return new WaitForSeconds(2f);
+        SceneManager.LoadScene("Map1");
+    }
+
     private string HashPassword(string password)
     {
         using (SHA256 sha256 = SHA256.Create())
         {
             byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new();
 
             foreach (byte b in bytes)
             {
@@ -161,5 +160,4 @@ public class AuthenManager : MonoBehaviour
             return builder.ToString();
         }
     }
-    #endregion
 }
