@@ -21,8 +21,16 @@ public class AuthenManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI PasswordSignUpInput;
     [SerializeField] private GameObject SignUpPage;
 
+
+    private void RestData()
+    {
+        PlayerPrefs.DeleteAll();
+        Debug.Log("Delete All!");
+    }
+
     private void Start()
     {
+        this.RestData();
         if (!ValidateFields())
         {
             Debug.LogError("One or more required fields are not assigned in the Unity Inspector.");
@@ -141,8 +149,8 @@ public class AuthenManager : MonoBehaviour
 
     private IEnumerator LoadScene()
     {
-        yield return new WaitForSeconds(2f);
-        SceneManager.LoadScene("Map1");
+        yield return new WaitForSecondsRealtime(2f);
+        SceneManager.LoadScene("MainMenu");
     }
 
     private string HashPassword(string password)
