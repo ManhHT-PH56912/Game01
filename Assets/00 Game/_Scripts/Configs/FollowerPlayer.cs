@@ -1,4 +1,5 @@
 using UnityEngine;
+using Game.Configs;
 
 public class FollowerPlayer : MonoBehaviour
 {
